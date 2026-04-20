@@ -1,0 +1,769 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CV Optimizer — Potencia tu candidatura con IA</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    :root {
+      --bg: #0a0a0f;
+      --surface: #12121a;
+      --surface2: #1a1a2e;
+      --border: rgba(255,255,255,0.08);
+      --accent-blue: #4f8ef7;
+      --accent-purple: #8b5cf6;
+      --accent-grad: linear-gradient(135deg, #4f8ef7, #8b5cf6);
+      --text: #e8e8f0;
+      --text-muted: #888899;
+      --error: #f87171;
+      --success: #34d399;
+      --radius: 12px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      line-height: 1.6;
+      min-height: 100vh;
+    }
+
+    /* NAV */
+    nav {
+      padding: 1.2rem 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid var(--border);
+      backdrop-filter: blur(10px);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(10,10,15,0.85);
+    }
+    .logo {
+      font-weight: 700;
+      font-size: 1.2rem;
+      background: var(--accent-grad);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .nav-cta {
+      background: var(--accent-grad);
+      color: #fff;
+      border: none;
+      padding: 0.5rem 1.2rem;
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+      font-size: 0.9rem;
+      text-decoration: none;
+      transition: opacity 0.2s;
+    }
+    .nav-cta:hover { opacity: 0.85; }
+
+    /* HERO */
+    .hero {
+      text-align: center;
+      padding: 6rem 2rem 4rem;
+      position: relative;
+      overflow: hidden;
+    }
+    .hero::before {
+      content: '';
+      position: absolute;
+      top: -200px; left: 50%;
+      transform: translateX(-50%);
+      width: 800px; height: 600px;
+      background: radial-gradient(ellipse, rgba(79,142,247,0.15) 0%, rgba(139,92,246,0.1) 40%, transparent 70%);
+      pointer-events: none;
+    }
+    .badge {
+      display: inline-block;
+      background: rgba(79,142,247,0.15);
+      border: 1px solid rgba(79,142,247,0.3);
+      color: var(--accent-blue);
+      padding: 0.3rem 0.9rem;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      margin-bottom: 1.5rem;
+    }
+    h1 {
+      font-size: clamp(2.2rem, 5vw, 3.8rem);
+      font-weight: 800;
+      line-height: 1.15;
+      margin-bottom: 1.2rem;
+      letter-spacing: -0.02em;
+    }
+    h1 span {
+      background: var(--accent-grad);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .hero-sub {
+      font-size: 1.15rem;
+      color: var(--text-muted);
+      max-width: 560px;
+      margin: 0 auto 2.5rem;
+    }
+    .hero-actions {
+      display: flex;
+      gap: 1rem;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+    .btn-primary {
+      background: var(--accent-grad);
+      color: #fff;
+      border: none;
+      padding: 0.85rem 2rem;
+      border-radius: var(--radius);
+      font-weight: 700;
+      font-size: 1rem;
+      cursor: pointer;
+      text-decoration: none;
+      transition: transform 0.2s, box-shadow 0.2s;
+      display: inline-block;
+      box-shadow: 0 4px 20px rgba(79,142,247,0.3);
+    }
+    .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(79,142,247,0.4); }
+    .btn-secondary {
+      background: transparent;
+      color: var(--text);
+      border: 1px solid var(--border);
+      padding: 0.85rem 2rem;
+      border-radius: var(--radius);
+      font-weight: 600;
+      font-size: 1rem;
+      cursor: pointer;
+      text-decoration: none;
+      transition: border-color 0.2s;
+      display: inline-block;
+    }
+    .btn-secondary:hover { border-color: var(--accent-blue); }
+
+    /* STATS */
+    .stats {
+      display: flex;
+      justify-content: center;
+      gap: 3rem;
+      padding: 3rem 2rem;
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+      flex-wrap: wrap;
+    }
+    .stat { text-align: center; }
+    .stat-num {
+      font-size: 2rem;
+      font-weight: 800;
+      background: var(--accent-grad);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .stat-label { color: var(--text-muted); font-size: 0.9rem; margin-top: 0.25rem; }
+
+    /* HOW IT WORKS */
+    .section { padding: 5rem 2rem; max-width: 1100px; margin: 0 auto; }
+    .section-tag {
+      text-align: center;
+      color: var(--accent-purple);
+      font-weight: 700;
+      font-size: 0.8rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      margin-bottom: 0.75rem;
+    }
+    h2 {
+      text-align: center;
+      font-size: clamp(1.6rem, 3vw, 2.4rem);
+      font-weight: 800;
+      margin-bottom: 3rem;
+      letter-spacing: -0.02em;
+    }
+    .steps {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 1.5rem;
+    }
+    .step {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.75rem;
+      position: relative;
+    }
+    .step-num {
+      width: 36px; height: 36px;
+      border-radius: 50%;
+      background: var(--accent-grad);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      font-size: 0.9rem;
+      margin-bottom: 1rem;
+    }
+    .step h3 { font-size: 1rem; font-weight: 700; margin-bottom: 0.5rem; }
+    .step p { color: var(--text-muted); font-size: 0.9rem; }
+
+    /* FORM SECTION */
+    #form-section {
+      background: var(--surface);
+      border-top: 1px solid var(--border);
+      padding: 5rem 2rem;
+    }
+    .form-container {
+      max-width: 680px;
+      margin: 0 auto;
+    }
+    .form-header {
+      text-align: center;
+      margin-bottom: 2.5rem;
+    }
+    .form-header h2 { margin-bottom: 0.75rem; }
+    .form-header p { color: var(--text-muted); }
+
+    form { display: flex; flex-direction: column; gap: 1.2rem; }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+    }
+    @media (max-width: 560px) {
+      .form-row { grid-template-columns: 1fr; }
+    }
+
+    .field { display: flex; flex-direction: column; gap: 0.4rem; }
+
+    label {
+      font-size: 0.88rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      letter-spacing: 0.02em;
+    }
+    label span.req { color: var(--accent-blue); margin-left: 2px; }
+
+    input, select, textarea {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      font-size: 0.95rem;
+      padding: 0.75rem 1rem;
+      transition: border-color 0.2s, box-shadow 0.2s;
+      outline: none;
+      width: 100%;
+      font-family: inherit;
+    }
+    input:focus, select:focus, textarea:focus {
+      border-color: var(--accent-blue);
+      box-shadow: 0 0 0 3px rgba(79,142,247,0.15);
+    }
+    select option { background: var(--surface2); }
+
+    /* File upload */
+    .file-upload {
+      border: 2px dashed var(--border);
+      border-radius: var(--radius);
+      padding: 2rem;
+      text-align: center;
+      cursor: pointer;
+      transition: border-color 0.2s, background 0.2s;
+      position: relative;
+    }
+    .file-upload:hover, .file-upload.dragover {
+      border-color: var(--accent-blue);
+      background: rgba(79,142,247,0.05);
+    }
+    .file-upload input[type="file"] {
+      position: absolute; inset: 0;
+      opacity: 0; cursor: pointer;
+      width: 100%; height: 100%;
+    }
+    .file-icon { font-size: 2rem; margin-bottom: 0.5rem; }
+    .file-label { font-weight: 600; font-size: 0.95rem; margin-bottom: 0.25rem; }
+    .file-sub { color: var(--text-muted); font-size: 0.82rem; }
+    .file-name {
+      margin-top: 0.75rem;
+      color: var(--accent-blue);
+      font-size: 0.88rem;
+      font-weight: 600;
+      display: none;
+    }
+
+    /* Questions */
+    .questions-title {
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 0.25rem;
+      padding-top: 0.5rem;
+      border-top: 1px solid var(--border);
+    }
+    .questions-sub {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      margin-bottom: 1rem;
+    }
+
+    .progress-bar {
+      background: var(--surface2);
+      border-radius: 4px;
+      height: 4px;
+      margin-bottom: 2rem;
+      overflow: hidden;
+    }
+    .progress-fill {
+      height: 100%;
+      background: var(--accent-grad);
+      border-radius: 4px;
+      transition: width 0.3s;
+      width: 0%;
+    }
+
+    /* Submit */
+    .submit-btn {
+      background: var(--accent-grad);
+      color: #fff;
+      border: none;
+      padding: 1rem;
+      border-radius: var(--radius);
+      font-weight: 700;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: opacity 0.2s, transform 0.2s;
+      box-shadow: 0 4px 20px rgba(79,142,247,0.3);
+      margin-top: 0.5rem;
+    }
+    .submit-btn:hover:not(:disabled) { opacity: 0.9; transform: translateY(-1px); }
+    .submit-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    .form-footer {
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 0.82rem;
+      margin-top: 0.5rem;
+    }
+
+    .error-msg {
+      color: var(--error);
+      font-size: 0.82rem;
+      display: none;
+    }
+    .global-error {
+      background: rgba(248,113,113,0.1);
+      border: 1px solid rgba(248,113,113,0.3);
+      border-radius: 8px;
+      padding: 0.75rem 1rem;
+      color: var(--error);
+      font-size: 0.9rem;
+      display: none;
+    }
+
+    /* FOOTER */
+    footer {
+      text-align: center;
+      padding: 2rem;
+      color: var(--text-muted);
+      font-size: 0.85rem;
+      border-top: 1px solid var(--border);
+    }
+
+    /* Loader */
+    .spinner {
+      display: inline-block;
+      width: 18px; height: 18px;
+      border: 2px solid rgba(255,255,255,0.3);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      vertical-align: middle;
+      margin-right: 8px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
+</head>
+<body>
+
+  <nav>
+    <div class="logo">CV Optimizer</div>
+    <a href="#form-section" class="nav-cta">Empezar gratis →</a>
+  </nav>
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="badge">🚀 Inteligencia Artificial aplicada a tu carrera</div>
+    <h1>Tu CV, <span>optimizado</span><br/>para destacar</h1>
+    <p class="hero-sub">
+      Analizamos tu perfil profesional y transformamos tu CV en una herramienta que abre puertas. Sin plantillas genéricas. Sin suposiciones.
+    </p>
+    <div class="hero-actions">
+      <a href="#form-section" class="btn-primary">Analizar mi CV gratis</a>
+      <a href="#como-funciona" class="btn-secondary">Ver cómo funciona</a>
+    </div>
+  </section>
+
+  <!-- STATS -->
+  <div class="stats">
+    <div class="stat">
+      <div class="stat-num">94%</div>
+      <div class="stat-label">de usuarios mejoran su tasa de respuesta</div>
+    </div>
+    <div class="stat">
+      <div class="stat-num">3x</div>
+      <div class="stat-label">más entrevistas en los primeros 30 días</div>
+    </div>
+    <div class="stat">
+      <div class="stat-label" style="font-size:0.75rem">Análisis personalizado</div>
+      <div class="stat-num">100%</div>
+      <div class="stat-label">adaptado a tu sector</div>
+    </div>
+  </div>
+
+  <!-- HOW IT WORKS -->
+  <section class="section" id="como-funciona">
+    <div class="section-tag">Proceso</div>
+    <h2>Tres pasos hacia tu próximo empleo</h2>
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">1</div>
+        <h3>Sube tu CV</h3>
+        <p>Comparte tu CV actual en PDF. No importa si está desactualizado o poco estructurado.</p>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <h3>Cuéntanos tu objetivo</h3>
+        <p>Responde 5 preguntas rápidas sobre tus metas profesionales. 3 minutos máximo.</p>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <h3>Recibe tu análisis</h3>
+        <p>En 24h recibirás un informe detallado con recomendaciones concretas y accionables.</p>
+      </div>
+      <div class="step">
+        <div class="step-num">4</div>
+        <h3>Aplica y destaca</h3>
+        <p>Implementa los cambios y empieza a recibir más respuestas de recruiters.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- FORM -->
+  <section id="form-section">
+    <div class="form-container">
+      <div class="form-header">
+        <div class="section-tag">Empieza ahora</div>
+        <h2>Analiza tu CV gratis</h2>
+        <p>Rellena el formulario y recibirás tu análisis personalizado en menos de 24 horas.</p>
+      </div>
+
+      <div class="progress-bar">
+        <div class="progress-fill" id="progress"></div>
+      </div>
+
+      <div class="global-error" id="global-error"></div>
+
+      <form id="cv-form" novalidate>
+
+        <!-- Datos básicos -->
+        <div class="form-row">
+          <div class="field">
+            <label for="nombre">Nombre completo <span class="req">*</span></label>
+            <input type="text" id="nombre" name="nombre" placeholder="Ana García López" required />
+            <span class="error-msg" id="err-nombre">Campo obligatorio</span>
+          </div>
+          <div class="field">
+            <label for="email">Email profesional <span class="req">*</span></label>
+            <input type="email" id="email" name="email" placeholder="ana@empresa.com" required />
+            <span class="error-msg" id="err-email">Email no válido</span>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="field">
+            <label for="experiencia">Años de experiencia <span class="req">*</span></label>
+            <select id="experiencia" name="experiencia" required>
+              <option value="">Selecciona...</option>
+              <option value="0-1">Menos de 1 año</option>
+              <option value="1-3">1 – 3 años</option>
+              <option value="3-5">3 – 5 años</option>
+              <option value="5-10">5 – 10 años</option>
+              <option value="10+">Más de 10 años</option>
+            </select>
+            <span class="error-msg" id="err-experiencia">Selecciona una opción</span>
+          </div>
+          <div class="field">
+            <label for="sector">Sector profesional <span class="req">*</span></label>
+            <select id="sector" name="sector" required>
+              <option value="">Selecciona...</option>
+              <option value="tecnologia">Tecnología / IT</option>
+              <option value="finanzas">Finanzas / Banca</option>
+              <option value="marketing">Marketing / Comunicación</option>
+              <option value="salud">Salud / Farmacia</option>
+              <option value="educacion">Educación</option>
+              <option value="legal">Legal / Consultoría</option>
+              <option value="industria">Industria / Ingeniería</option>
+              <option value="rrhh">RRHH / Talento</option>
+              <option value="ventas">Ventas / Comercial</option>
+              <option value="diseno">Diseño / Creatividad</option>
+              <option value="otro">Otro</option>
+            </select>
+            <span class="error-msg" id="err-sector">Selecciona una opción</span>
+          </div>
+        </div>
+
+        <!-- Upload CV -->
+        <div class="field">
+          <label>CV en PDF <span class="req">*</span></label>
+          <div class="file-upload" id="file-drop">
+            <input type="file" id="cv-file" name="cv" accept=".pdf" required />
+            <div class="file-icon">📄</div>
+            <div class="file-label">Arrastra tu CV aquí o haz clic para seleccionarlo</div>
+            <div class="file-sub">Solo PDF · Máximo 10 MB</div>
+            <div class="file-name" id="file-name-display"></div>
+          </div>
+          <span class="error-msg" id="err-cv">Por favor adjunta tu CV en PDF</span>
+        </div>
+
+        <!-- Cuestionario -->
+        <div class="questions-title">Cuestionario profesional</div>
+        <div class="questions-sub">5 preguntas rápidas para personalizar tu análisis</div>
+
+        <div class="field">
+          <label for="q1">1. ¿Cuál es tu objetivo principal en los próximos 12 meses? <span class="req">*</span></label>
+          <select id="q1" name="q1" required>
+            <option value="">Selecciona...</option>
+            <option value="cambio-empresa">Cambiar de empresa dentro de mi sector</option>
+            <option value="cambio-sector">Cambiar completamente de sector</option>
+            <option value="ascenso">Conseguir un ascenso o promoción interna</option>
+            <option value="primer-empleo">Encontrar mi primer empleo o prácticas</option>
+            <option value="freelance">Pasar al trabajo autónomo / freelance</option>
+            <option value="remoto">Conseguir un trabajo 100% remoto</option>
+          </select>
+          <span class="error-msg" id="err-q1">Selecciona una opción</span>
+        </div>
+
+        <div class="field">
+          <label for="q2">2. ¿Cuánto tiempo llevas en búsqueda activa de empleo? <span class="req">*</span></label>
+          <select id="q2" name="q2" required>
+            <option value="">Selecciona...</option>
+            <option value="no-busco">No busco actualmente, solo exploro</option>
+            <option value="menos-1mes">Menos de 1 mes</option>
+            <option value="1-3meses">Entre 1 y 3 meses</option>
+            <option value="3-6meses">Entre 3 y 6 meses</option>
+            <option value="mas-6meses">Más de 6 meses</option>
+          </select>
+          <span class="error-msg" id="err-q2">Selecciona una opción</span>
+        </div>
+
+        <div class="field">
+          <label for="q3">3. ¿Qué tipo de empresa es tu entorno ideal? <span class="req">*</span></label>
+          <select id="q3" name="q3" required>
+            <option value="">Selecciona...</option>
+            <option value="startup">Startup / empresa en crecimiento</option>
+            <option value="scale-up">Scale-up (50–500 empleados)</option>
+            <option value="grande">Gran empresa / multinacional</option>
+            <option value="publica">Administración pública</option>
+            <option value="consultora">Consultoría / agencia</option>
+            <option value="cualquiera">No tengo preferencia clara</option>
+          </select>
+          <span class="error-msg" id="err-q3">Selecciona una opción</span>
+        </div>
+
+        <div class="field">
+          <label for="q4">4. ¿Cuál es tu mayor fortaleza como profesional? <span class="req">*</span></label>
+          <select id="q4" name="q4" required>
+            <option value="">Selecciona...</option>
+            <option value="tecnico">Conocimiento técnico / especialización</option>
+            <option value="liderazgo">Liderazgo y gestión de equipos</option>
+            <option value="comercial">Orientación comercial y resultados</option>
+            <option value="creativo">Creatividad e innovación</option>
+            <option value="analitico">Pensamiento analítico / datos</option>
+            <option value="comunicacion">Comunicación y relaciones</option>
+          </select>
+          <span class="error-msg" id="err-q4">Selecciona una opción</span>
+        </div>
+
+        <div class="field">
+          <label for="q5">5. ¿Qué aspecto de tu CV crees que más necesita mejorar? <span class="req">*</span></label>
+          <select id="q5" name="q5" required>
+            <option value="">Selecciona...</option>
+            <option value="estructura">Estructura y presentación visual</option>
+            <option value="logros">Cuantificar logros con datos</option>
+            <option value="palabras-clave">Palabras clave para ATS</option>
+            <option value="resumen">El resumen / extracto profesional</option>
+            <option value="experiencia">Cómo redacto mi experiencia</option>
+            <option value="no-se">No sé, por eso estoy aquí</option>
+          </select>
+          <span class="error-msg" id="err-q5">Selecciona una opción</span>
+        </div>
+
+        <button type="submit" class="submit-btn" id="submit-btn">
+          Enviar mi CV y cuestionario →
+        </button>
+
+        <p class="form-footer">
+          🔒 Tus datos están protegidos. No los compartimos con terceros. Solo los usamos para tu análisis.
+        </p>
+      </form>
+    </div>
+  </section>
+
+  <footer>
+    <p>© 2025 CV Optimizer · Todos los derechos reservados</p>
+  </footer>
+
+  <script>
+    // ─── Supabase config ───────────────────────────────────────────────
+    const SUPABASE_URL = 'https://goqjmsrrskifpyuspgkt.supabase.co';
+    const SUPABASE_KEY = ''; // replaced at deploy time
+    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    // ─── Progress bar ─────────────────────────────────────────────────
+    const FIELDS = ['nombre','email','experiencia','sector','cv-file','q1','q2','q3','q4','q5'];
+    function updateProgress() {
+      let filled = 0;
+      FIELDS.forEach(id => {
+        const el = document.getElementById(id);
+        if (!el) return;
+        if (el.type === 'file') { if (el.files && el.files.length > 0) filled++; }
+        else if (el.value.trim()) filled++;
+      });
+      document.getElementById('progress').style.width = (filled / FIELDS.length * 100) + '%';
+    }
+    document.querySelectorAll('input,select').forEach(el => el.addEventListener('change', updateProgress));
+    document.querySelectorAll('input[type="text"],input[type="email"]').forEach(el => el.addEventListener('input', updateProgress));
+
+    // ─── File upload UX ──────────────────────────────────────────────
+    const fileInput = document.getElementById('cv-file');
+    const fileDrop  = document.getElementById('file-drop');
+    const fileDisplay = document.getElementById('file-name-display');
+
+    fileInput.addEventListener('change', () => {
+      if (fileInput.files.length > 0) {
+        fileDisplay.textContent = '✓ ' + fileInput.files[0].name;
+        fileDisplay.style.display = 'block';
+      }
+      updateProgress();
+    });
+
+    ['dragenter','dragover'].forEach(e => fileDrop.addEventListener(e, ev => { ev.preventDefault(); fileDrop.classList.add('dragover'); }));
+    ['dragleave','drop'].forEach(e => fileDrop.addEventListener(e, ev => { ev.preventDefault(); fileDrop.classList.remove('dragover'); }));
+    fileDrop.addEventListener('drop', ev => {
+      const files = ev.dataTransfer.files;
+      if (files.length && files[0].type === 'application/pdf') {
+        const dt = new DataTransfer();
+        dt.items.add(files[0]);
+        fileInput.files = dt.files;
+        fileDisplay.textContent = '✓ ' + files[0].name;
+        fileDisplay.style.display = 'block';
+        updateProgress();
+      }
+    });
+
+    // ─── Validation ───────────────────────────────────────────────────
+    function showError(id, show) {
+      const el = document.getElementById('err-' + id);
+      if (el) el.style.display = show ? 'block' : 'none';
+    }
+    function validate() {
+      let ok = true;
+      const nombre = document.getElementById('nombre').value.trim();
+      const email  = document.getElementById('email').value.trim();
+      const exp    = document.getElementById('experiencia').value;
+      const sector = document.getElementById('sector').value;
+      const cv     = document.getElementById('cv-file').files;
+      const q1 = document.getElementById('q1').value;
+      const q2 = document.getElementById('q2').value;
+      const q3 = document.getElementById('q3').value;
+      const q4 = document.getElementById('q4').value;
+      const q5 = document.getElementById('q5').value;
+
+      showError('nombre', !nombre);   if (!nombre) ok = false;
+      showError('email', !email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email));
+      if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) ok = false;
+      showError('experiencia', !exp); if (!exp) ok = false;
+      showError('sector', !sector);   if (!sector) ok = false;
+      showError('cv', !cv.length);    if (!cv.length) ok = false;
+      showError('q1', !q1); if (!q1) ok = false;
+      showError('q2', !q2); if (!q2) ok = false;
+      showError('q3', !q3); if (!q3) ok = false;
+      showError('q4', !q4); if (!q4) ok = false;
+      showError('q5', !q5); if (!q5) ok = false;
+      return ok;
+    }
+
+    // ─── Submit ───────────────────────────────────────────────────────
+    document.getElementById('cv-form').addEventListener('submit', async e => {
+      e.preventDefault();
+      if (!validate()) return;
+
+      const btn = document.getElementById('submit-btn');
+      const globalError = document.getElementById('global-error');
+      globalError.style.display = 'none';
+      btn.disabled = true;
+      btn.innerHTML = '<span class="spinner"></span> Subiendo tu CV...';
+
+      try {
+        // 1. Upload CV to Supabase Storage
+        const file = document.getElementById('cv-file').files[0];
+        const fileName = `${Date.now()}_${file.name.replace(/[^a-zA-Z0-9._-]/g, '_')}`;
+        const { data: uploadData, error: uploadError } = await supabase.storage
+          .from('cvs')
+          .upload(fileName, file, { contentType: 'application/pdf', upsert: false });
+
+        if (uploadError) throw new Error('Error al subir el CV: ' + uploadError.message);
+
+        const { data: { publicUrl } } = supabase.storage.from('cvs').getPublicUrl(fileName);
+
+        btn.innerHTML = '<span class="spinner"></span> Guardando datos...';
+
+        // 2. Insert submission
+        const { error: dbError } = await supabase.from('submissions').insert([{
+          nombre:      document.getElementById('nombre').value.trim(),
+          email:       document.getElementById('email').value.trim(),
+          experiencia: document.getElementById('experiencia').value,
+          sector:      document.getElementById('sector').value,
+          cv_url:      publicUrl,
+          q1:          document.getElementById('q1').value,
+          q2:          document.getElementById('q2').value,
+          q3:          document.getElementById('q3').value,
+          q4:          document.getElementById('q4').value,
+          q5:          document.getElementById('q5').value,
+          created_at:  new Date().toISOString()
+        }]);
+
+        if (dbError) throw new Error('Error al guardar: ' + dbError.message);
+
+        // 3. Redirect to confirmation
+        window.location.href = 'confirmation.html?name=' + encodeURIComponent(document.getElementById('nombre').value.trim().split(' ')[0]);
+
+      } catch (err) {
+        globalError.textContent = '❌ ' + err.message + '. Por favor inténtalo de nuevo.';
+        globalError.style.display = 'block';
+        btn.disabled = false;
+        btn.innerHTML = 'Enviar mi CV y cuestionario →';
+        window.scrollTo({ top: globalError.offsetTop - 20, behavior: 'smooth' });
+      }
+    });
+
+    // smooth scroll for anchor links
+    document.querySelectorAll('a[href^="#"]').forEach(a => {
+      a.addEventListener('click', e => {
+        e.preventDefault();
+        document.querySelector(a.getAttribute('href'))?.scrollIntoView({ behavior: 'smooth' });
+      });
+    });
+  </script>
+</body>
+</html>
